@@ -8,7 +8,8 @@ const io = new Server(server);
 app.use(express.static('public'));
 
 const rooms = {};
-const LAST = 9; // índice de la última escena
+const LAST = 30; // tope de índice de escena (el juego usa 14 escenas)
+const ROOM_TTL = 1000 * 60 * 60 * 12; // una sala vacía conserva su progreso 12 h
 
 io.on('connection', (s) => {
   s.on('join', (raw) => {
@@ -66,9 +67,14 @@ io.on('connection', (s) => {
     if (!r) return;
     delete r.players[s.id];
     io.to(s.code).emit('count', Object.keys(r.players).length);
-    if (!Object.keys(r.players).length) delete rooms[s.code];
+    if (!Object.keys(r.players).length) r.emptyAt = Date.now(); // se conserva el progreso para retomar
   });
 });
+
+setInterval(() => {
+  const now = Date.now();
+  Object.keys(rooms).forEach((c) => { const r = rooms[c]; if (!Object.keys(r.players).length && now - (r.emptyAt || now) > ROOM_TTL) delete rooms[c]; });
+}, 10 * 60 * 1000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => console.log('Servidor en puerto ' + PORT));
