@@ -2,16 +2,36 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,user-scalable=no">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#05071a">
 <title>Nexus Estelar: Escape Dual</title>
 <style>
-  html,body{margin:0;height:100%;background:#05071a;color:#fff;font-family:monospace;overflow:hidden;touch-action:none}
-  #lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#05071a;z-index:5;text-align:center;padding:20px}
+  :root{--ink:#05071a;--gold:#ffd86b;--ice:#9fd0ff;--line:#6c78c9}
+  html,body{margin:0;height:100%;background:#000;color:#fff;font-family:monospace;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+  canvas{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000;image-rendering:pixelated}
+  #lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--ink);z-index:5;text-align:center;padding:20px}
   #lobby h1{font-size:26px;margin:0;line-height:1.3}
-  #lobby input{font:20px monospace;padding:10px;text-align:center;text-transform:uppercase;width:180px}
-  #lobby button{font:20px monospace;padding:10px 24px;background:#ffd86b;border:0;cursor:pointer}
-  canvas{display:block;margin:auto;width:100vw;height:100vh;object-fit:contain;image-rendering:pixelated}
-  #touch button{position:fixed;z-index:4;width:54px;height:54px;border-radius:12px;border:2px solid #6c78c9;background:rgba(20,28,80,.7);color:#fff;font:18px monospace;user-select:none;-webkit-user-select:none}
+  #lobby input{font:20px monospace;padding:10px;text-align:center;text-transform:uppercase;width:180px;-webkit-user-select:text;user-select:text}
+  #lobby button{font:20px monospace;padding:10px 24px;background:var(--gold);border:0;cursor:pointer}
+  #rotate{display:none;position:fixed;inset:0;z-index:9;background:var(--ink);flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center;font-size:18px;line-height:1.5;padding:24px}
+  @media (orientation:portrait){body.playing #rotate{display:flex}}
+  #touch{display:none}
+  body.touch.playing #touch{display:block}
+  #joy{position:fixed;left:calc(20px + env(safe-area-inset-left));bottom:calc(20px + env(safe-area-inset-bottom));width:132px;height:132px;border-radius:50%;border:2px solid rgba(159,208,255,.55);background:rgba(10,16,50,.35);z-index:4;touch-action:none}
+  #knob{position:absolute;left:50%;top:50%;width:56px;height:56px;margin:-28px 0 0 -28px;border-radius:50%;background:rgba(159,208,255,.5);border:2px solid #cfe6ff;pointer-events:none}
+  .tb{position:fixed;z-index:4;display:none;align-items:center;justify-content:center;padding:0;border-radius:50%;border:2px solid rgba(159,208,255,.6);background:rgba(10,16,50,.45);color:#fff;font:700 16px monospace;touch-action:none}
+  .tb.on{background:rgba(159,208,255,.5)}
+  .tb[data-k="KeyE"]{right:calc(22px + env(safe-area-inset-right));bottom:calc(24px + env(safe-area-inset-bottom));width:88px;height:88px;border-color:var(--gold);font-size:26px}
+  .tb[data-k="Space"]{right:calc(122px + env(safe-area-inset-right));bottom:calc(30px + env(safe-area-inset-bottom));width:70px;height:70px;font-size:12px}
+  .tb[data-k="KeyR"],.tb[data-k="KeyT"],.tb[data-k="KeyQ"],.tb[data-k="KeyV"],.tb[data-k="Digit1"],.tb[data-k="Digit2"],.tb[data-k="Digit3"]{width:48px;height:48px}
+  .tb[data-k="KeyR"]{right:calc(22px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="KeyT"]{right:calc(78px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="KeyQ"]{right:calc(134px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="KeyV"]{right:calc(22px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="Digit1"]{right:calc(22px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="Digit2"]{right:calc(78px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
+  .tb[data-k="Digit3"]{right:calc(134px + env(safe-area-inset-right));bottom:calc(126px + env(safe-area-inset-bottom))}
 </style>
 </head>
 <body>
@@ -22,8 +42,20 @@
   <button id="go">ENTRAR</button>
   <div id="msg"></div>
 </div>
+<div id="rotate"><div style="font-size:42px">📱↻</div><div>Gira el teléfono<br>para jugar en horizontal</div></div>
 <canvas id="c"></canvas>
-<div id="touch"></div>
+<div id="touch">
+  <div id="joy"><div id="knob"></div></div>
+  <button class="tb" data-k="KeyE">E</button>
+  <button class="tb" data-k="Space">SALTAR</button>
+  <button class="tb" data-k="KeyR">R</button>
+  <button class="tb" data-k="KeyT">T</button>
+  <button class="tb" data-k="KeyQ">Q</button>
+  <button class="tb" data-k="KeyV">V</button>
+  <button class="tb" data-k="Digit1">1</button>
+  <button class="tb" data-k="Digit2">2</button>
+  <button class="tb" data-k="Digit3">3</button>
+</div>
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
 </body>
