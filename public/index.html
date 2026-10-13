@@ -9,8 +9,11 @@
 <style>
   :root{--ink:#05071a;--gold:#ffd86b;--ice:#9fd0ff;--line:#6c78c9}
   html,body{margin:0;height:100%;background:#000;color:#fff;font-family:monospace;overflow:hidden;touch-action:none;overscroll-behavior:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
-  canvas{position:fixed;inset:0;width:100%;height:100%;object-fit:contain;background:#000;image-rendering:pixelated}
-  #lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:var(--ink);z-index:5;text-align:center;padding:20px}
+  #stage{position:fixed;left:50%;top:50%;width:min(100vw,177.78vh);height:min(100vh,56.25vw);transform:translate(-50%,-50%);background:#000}
+  #stage canvas{position:absolute;inset:0;width:100%;height:100%}
+  #g3{image-rendering:pixelated}
+  #c{pointer-events:none}
+  #lobby{position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:radial-gradient(circle at 50% 30%,#1a1630,var(--ink));z-index:5;text-align:center;padding:20px}
   #lobby h1{font-size:26px;margin:0;line-height:1.3}
   #lobby input{font:20px monospace;padding:10px;text-align:center;text-transform:uppercase;width:180px;-webkit-user-select:text;user-select:text}
   #lobby button{font:20px monospace;padding:10px 24px;background:var(--gold);border:0;cursor:pointer}
@@ -43,7 +46,7 @@
   <div id="msg"></div>
 </div>
 <div id="rotate"><div style="font-size:42px">📱↻</div><div>Gira el teléfono<br>para jugar en horizontal</div></div>
-<canvas id="c"></canvas>
+<div id="stage"><canvas id="g3"></canvas><canvas id="c"></canvas></div>
 <div id="touch">
   <div id="joy"><div id="knob"></div></div>
   <button class="tb" data-k="KeyE">E</button>
@@ -56,6 +59,7 @@
   <button class="tb" data-k="Digit2">2</button>
   <button class="tb" data-k="Digit3">3</button>
 </div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="game.js"></script>
 </body>
